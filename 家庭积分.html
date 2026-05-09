@@ -1,0 +1,1494 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>家庭积分系统</title>
+  <!-- Tailwind CSS v3 -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#FF9F45',
+            secondary: '#4ECDC4',
+            accent: '#FF6B6B',
+            success: '#51CF66',
+            warning: '#FFD43B',
+            info: '#339AF0',
+            light: '#F8F9FA',
+            dark: '#343A40',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          animation: {
+            'bounce-short': 'bounce 0.5s ease-in-out 2',
+            'pulse-short': 'pulse 0.5s ease-in-out 2',
+            'spin-short': 'spin 0.5s ease-in-out 1',
+            'fade-in': 'fadeIn 0.3s ease-in-out',
+            'slide-up': 'slideUp 0.3s ease-in-out',
+            'scale-in': 'scaleIn 0.3s ease-in-out',
+            'float': 'float 3s ease-in-out infinite',
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            },
+            slideUp: {
+              '0%': { transform: 'translateY(20px)', opacity: '0' },
+              '100%': { transform: 'translateY(0)', opacity: '1' },
+            },
+            scaleIn: {
+              '0%': { transform: 'scale(0.9)', opacity: '0' },
+              '100%': { transform: 'scale(1)', opacity: '1' },
+            },
+            float: {
+              '0%, 100%': { transform: 'translateY(0)' },
+              '50%': { transform: 'translateY(-10px)' },
+            },
+          },
+          boxShadow: {
+            'card': '0 4px 0 0 rgba(0, 0, 0, 0.1)',
+            'card-hover': '0 6px 0 0 rgba(0, 0, 0, 0.15)',
+            'button': '0 4px 0 0 rgba(0, 0, 0, 0.2)',
+            'button-hover': '0 6px 0 0 rgba(0, 0, 0, 0.25)',
+          }
+        }
+      }
+    }
+  </script>
+  
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .text-shadow {
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .text-shadow-lg {
+        text-shadow: 0 4px 8px rgba(0, 0, 0, 0.12), 0 2px 4px rgba(0, 0, 0, 0.08);
+      }
+      .btn-3d {
+        @apply relative transform transition-all duration-150 active:translate-y-1 active:shadow-button;
+      }
+      .btn-3d-primary {
+        @apply bg-primary text-white shadow-[0_4px_0_0_#e08a3e] hover:brightness-105 active:shadow-[0_2px_0_0_#e08a3e];
+      }
+      .btn-3d-secondary {
+        @apply bg-secondary text-white shadow-[0_4px_0_0_#3da8a0] hover:brightness-105 active:shadow-[0_2px_0_0_#3da8a0];
+      }
+      .btn-3d-accent {
+        @apply bg-accent text-white shadow-[0_4px_0_0_#e05a5a] hover:brightness-105 active:shadow-[0_2px_0_0_#e05a5a];
+      }
+      .btn-3d-success {
+        @apply bg-success text-white shadow-[0_4px_0_0_#41b352] hover:brightness-105 active:shadow-[0_2px_0_0_#41b352];
+      }
+      .btn-3d-warning {
+        @apply bg-warning text-dark shadow-[0_4px_0_0_#e0bd32] hover:brightness-105 active:shadow-[0_2px_0_0_#e0bd32];
+      }
+      .btn-3d-info {
+        @apply bg-info text-white shadow-[0_4px_0_0_#2d87c9] hover:brightness-105 active:shadow-[0_2px_0_0_#2d87c9];
+      }
+      .card-3d {
+        @apply relative bg-white rounded-xl shadow-card transition-all duration-300 hover:shadow-card-hover;
+      }
+      .reflection {
+        @apply absolute top-0 left-0 right-0 h-1/3 bg-gradient-to-b from-white/30 to-transparent z-0;
+      }
+      .badge-3d {
+        @apply relative inline-flex items-center justify-center rounded-full overflow-hidden;
+      }
+      .avatar-3d {
+        @apply relative rounded-full overflow-hidden shadow-md transition-all duration-300 hover:scale-105;
+      }
+      .progress-bar-3d {
+        @apply h-4 bg-gray-200 rounded-full overflow-hidden shadow-inner;
+      }
+      .progress-value-3d {
+        @apply h-full rounded-full relative overflow-hidden;
+      }
+      .glass-effect {
+        @apply bg-white/70 backdrop-blur-md border border-white/20 shadow-lg;
+      }
+      .confetti {
+        @apply absolute w-4 h-4 rounded-full;
+      }
+    }
+  </style>
+</head>
+<body class="bg-gray-50 font-sans min-h-screen">
+  <!-- 顶部导航栏 -->
+  <nav class="glass-effect sticky top-0 z-50 px-4 py-3 flex justify-between items-center">
+    <div class="flex items-center space-x-2">
+      <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center shadow-button">
+        <i class="fa fa-star text-white text-xl"></i>
+      </div>
+      <h1 class="text-2xl font-bold text-dark text-shadow">家庭积分系统</h1>
+    </div>
+    <div class="flex items-center space-x-4">
+      <button id="addMemberBtn" class="btn-3d btn-3d-secondary px-4 py-2 rounded-lg">
+        <i class="fa fa-user-plus mr-2"></i>添加成员
+      </button>
+      <button id="addTaskBtn" class="btn-3d btn-3d-primary px-4 py-2 rounded-lg">
+        <i class="fa fa-plus-circle mr-2"></i>添加任务
+      </button>
+    </div>
+  </nav>
+
+  <!-- 主内容区 -->
+  <main class="container mx-auto px-4 py-6">
+    <!-- 统计卡片 -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div class="card-3d p-6 animate-fade-in">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-gray-500 text-sm font-medium">总成员数</p>
+            <h3 id="totalMembers" class="text-3xl font-bold text-dark mt-1">0</h3>
+          </div>
+          <div class="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+            <i class="fa fa-users text-primary text-xl"></i>
+          </div>
+        </div>
+        <div class="mt-4 progress-bar-3d">
+          <div id="membersProgress" class="progress-value-3d bg-primary" style="width: 0%">
+            <div class="reflection"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card-3d p-6 animate-fade-in" style="animation-delay: 0.1s">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-gray-500 text-sm font-medium">待完成任务</p>
+            <h3 id="pendingTasks" class="text-3xl font-bold text-dark mt-1">0</h3>
+          </div>
+          <div class="w-12 h-12 rounded-full bg-secondary/20 flex items-center justify-center">
+            <i class="fa fa-tasks text-secondary text-xl"></i>
+          </div>
+        </div>
+        <div class="mt-4 progress-bar-3d">
+          <div id="tasksProgress" class="progress-value-3d bg-secondary" style="width: 0%">
+            <div class="reflection"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card-3d p-6 animate-fade-in" style="animation-delay: 0.2s">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-gray-500 text-sm font-medium">本周完成</p>
+            <h3 id="completedTasks" class="text-3xl font-bold text-dark mt-1">0</h3>
+          </div>
+          <div class="w-12 h-12 rounded-full bg-success/20 flex items-center justify-center">
+            <i class="fa fa-check-circle text-success text-xl"></i>
+          </div>
+        </div>
+        <div class="mt-4 progress-bar-3d">
+          <div id="completedProgress" class="progress-value-3d bg-success" style="width: 0%">
+            <div class="reflection"></div>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card-3d p-6 animate-fade-in" style="animation-delay: 0.3s">
+        <div class="flex justify-between items-start">
+          <div>
+            <p class="text-gray-500 text-sm font-medium">总积分</p>
+            <h3 id="totalPoints" class="text-3xl font-bold text-dark mt-1">0</h3>
+          </div>
+          <div class="w-12 h-12 rounded-full bg-warning/20 flex items-center justify-center">
+            <i class="fa fa-star text-warning text-xl"></i>
+          </div>
+        </div>
+        <div class="mt-4 progress-bar-3d">
+          <div id="pointsProgress" class="progress-value-3d bg-warning" style="width: 0%">
+            <div class="reflection"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 积分排行榜 -->
+    <div class="card-3d p-6 mb-8 animate-fade-in" style="animation-delay: 0.4s">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-dark text-shadow">积分排行榜</h2>
+        <div class="relative">
+          <select id="sortSelect" class="btn-3d bg-gray-100 text-dark px-4 py-2 rounded-lg appearance-none pr-8">
+            <option value="points-desc">积分从高到低</option>
+            <option value="points-asc">积分从低到高</option>
+            <option value="name-asc">姓名A-Z</option>
+            <option value="name-desc">姓名Z-A</option>
+          </select>
+          <div class="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none">
+            <i class="fa fa-chevron-down text-gray-500"></i>
+          </div>
+        </div>
+      </div>
+      
+      <div id="leaderboard" class="space-y-4">
+        <!-- 排行榜内容将通过JavaScript动态生成 -->
+        <div class="text-center text-gray-500 py-8">
+          <i class="fa fa-trophy text-4xl mb-2 block opacity-30"></i>
+          <p>暂无成员数据</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 任务管理 -->
+    <div class="card-3d p-6 mb-8 animate-fade-in" style="animation-delay: 0.5s">
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold text-dark text-shadow">任务管理</h2>
+        <div class="flex space-x-2">
+          <button id="filterAllTasks" class="btn-3d bg-gray-100 text-dark px-4 py-2 rounded-lg active">
+            全部
+          </button>
+          <button id="filterPendingTasks" class="btn-3d bg-gray-100 text-dark px-4 py-2 rounded-lg">
+            待完成
+          </button>
+          <button id="filterCompletedTasks" class="btn-3d bg-gray-100 text-dark px-4 py-2 rounded-lg">
+            已完成
+          </button>
+        </div>
+      </div>
+      
+      <div id="tasksContainer" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- 任务卡片将通过JavaScript动态生成 -->
+        <div class="text-center text-gray-500 py-8 col-span-full">
+          <i class="fa fa-tasks text-4xl mb-2 block opacity-30"></i>
+          <p>暂无任务数据</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 成就徽章 -->
+    <div class="card-3d p-6 animate-fade-in" style="animation-delay: 0.6s">
+      <h2 class="text-2xl font-bold text-dark text-shadow mb-6">成就徽章</h2>
+      
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+        <div class="badge-card flex flex-col items-center">
+          <div class="badge-3d w-20 h-20 bg-blue-100 border-4 border-blue-500 animate-float">
+            <img src="https://p6-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/c265c02ea75b4737bbeb826995c70d50~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=20260509185757CE7F7F99CFD43709E61B&rrcfp=f06b921b&x-expires=1780916308&x-signature=8FrEk3YcT2WrljoBGEpSkNhf8JQ%3D" alt="新星" class="w-16 h-16 object-contain" />
+            <div class="reflection"></div>
+          </div>
+          <h3 class="mt-2 font-bold text-center">新星</h3>
+          <p class="text-xs text-gray-500 text-center">完成第一个任务</p>
+        </div>
+        
+        <div class="badge-card flex flex-col items-center">
+          <div class="badge-3d w-20 h-20 bg-yellow-100 border-4 border-yellow-500 animate-float" style="animation-delay: 0.5s">
+            <img src="https://p6-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/c265c02ea75b4737bbeb826995c70d50~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=20260509185757CE7F7F99CFD43709E61B&rrcfp=f06b921b&x-expires=1780916308&x-signature=8FrEk3YcT2WrljoBGEpSkNhf8JQ%3D" alt="冠军" class="w-16 h-16 object-contain" style="object-position: 25% 50%" />
+            <div class="reflection"></div>
+          </div>
+          <h3 class="mt-2 font-bold text-center">冠军</h3>
+          <p class="text-xs text-gray-500 text-center">一周内完成10个任务</p>
+        </div>
+        
+        <div class="badge-card flex flex-col items-center">
+          <div class="badge-3d w-20 h-20 bg-red-100 border-4 border-red-500 animate-float" style="animation-delay: 1s">
+            <img src="https://p6-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/c265c02ea75b4737bbeb826995c70d50~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=20260509185757CE7F7F99CFD43709E61B&rrcfp=f06b921b&x-expires=1780916308&x-signature=8FrEk3YcT2WrljoBGEpSkNhf8JQ%3D" alt="奖牌" class="w-16 h-16 object-contain" style="object-position: 50% 50%" />
+            <div class="reflection"></div>
+          </div>
+          <h3 class="mt-2 font-bold text-center">奖牌</h3>
+          <p class="text-xs text-gray-500 text-center">获得100积分</p>
+        </div>
+        
+        <div class="badge-card flex flex-col items-center">
+          <div class="badge-3d w-20 h-20 bg-purple-100 border-4 border-purple-500 animate-float" style="animation-delay: 1.5s">
+            <img src="https://p6-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/c265c02ea75b4737bbeb826995c70d50~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=20260509185757CE7F7F99CFD43709E61B&rrcfp=f06b921b&x-expires=1780916308&x-signature=8FrEk3YcT2WrljoBGEpSkNhf8JQ%3D" alt="皇冠" class="w-16 h-16 object-contain" style="object-position: 75% 50%" />
+            <div class="reflection"></div>
+          </div>
+          <h3 class="mt-2 font-bold text-center">皇冠</h3>
+          <p class="text-xs text-gray-500 text-center">连续7天完成任务</p>
+        </div>
+        
+        <div class="badge-card flex flex-col items-center opacity-50">
+          <div class="badge-3d w-20 h-20 bg-gray-100 border-4 border-gray-300">
+            <div class="w-full h-full flex items-center justify-center">
+              <i class="fa fa-lock text-gray-400 text-2xl"></i>
+            </div>
+            <div class="reflection"></div>
+          </div>
+          <h3 class="mt-2 font-bold text-center">神秘徽章</h3>
+          <p class="text-xs text-gray-500 text-center">敬请期待</p>
+        </div>
+        
+        <div class="badge-card flex flex-col items-center opacity-50">
+          <div class="badge-3d w-20 h-20 bg-gray-100 border-4 border-gray-300">
+            <div class="w-full h-full flex items-center justify-center">
+              <i class="fa fa-lock text-gray-400 text-2xl"></i>
+            </div>
+            <div class="reflection"></div>
+          </div>
+          <h3 class="mt-2 font-bold text-center">神秘徽章</h3>
+          <p class="text-xs text-gray-500 text-center">敬请期待</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 底部导航 -->
+  <footer class="glass-effect sticky bottom-0 z-40 px-4 py-3">
+    <div class="flex justify-around">
+      <button class="flex flex-col items-center text-primary">
+        <i class="fa fa-home text-xl"></i>
+        <span class="text-xs mt-1">首页</span>
+      </button>
+      <button class="flex flex-col items-center text-gray-500">
+        <i class="fa fa-calendar text-xl"></i>
+        <span class="text-xs mt-1">日历</span>
+      </button>
+      <button class="flex flex-col items-center text-gray-500">
+        <i class="fa fa-chart-bar text-xl"></i>
+        <span class="text-xs mt-1">统计</span>
+      </button>
+      <button class="flex flex-col items-center text-gray-500">
+        <i class="fa fa-cog text-xl"></i>
+        <span class="text-xs mt-1">设置</span>
+      </button>
+    </div>
+  </footer>
+
+  <!-- 添加成员模态框 -->
+  <div id="addMemberModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4 animate-scale-in">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-xl font-bold text-dark">添加家庭成员</h3>
+        <button class="closeModal text-gray-500 hover:text-gray-700">
+          <i class="fa fa-times text-xl"></i>
+        </button>
+      </div>
+      
+      <form id="addMemberForm" class="space-y-4">
+        <div>
+          <label for="memberName" class="block text-gray-700 mb-2">姓名</label>
+          <input type="text" id="memberName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" placeholder="请输入姓名" required>
+        </div>
+        
+        <div>
+          <label class="block text-gray-700 mb-2">选择头像</label>
+          <div class="grid grid-cols-4 gap-4">
+            <div class="avatar-option selected">
+              <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/abe7b1ecdb56421c8a8e32405bef379f~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=20260509185757CE7F7F99CFD43709E61B&rrcfp=f06b921b&x-expires=1780916303&x-signature=WaM0Pj9Tq7D17YTXMwLlnDrUusU%3D" alt="父亲" class="w-16 h-16 object-cover rounded-full cursor-pointer border-4 border-primary" data-avatar="father">
+            </div>
+            <div class="avatar-option">
+              <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/abe7b1ecdb56421c8a8e32405bef379f~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=20260509185757CE7F7F99CFD43709E61B&rrcfp=f06b921b&x-expires=1780916303&x-signature=WaM0Pj9Tq7D17YTXMwLlnDrUusU%3D" alt="母亲" class="w-16 h-16 object-cover rounded-full cursor-pointer border-4 border-transparent" style="object-position: 75% 50%" data-avatar="mother">
+            </div>
+            <div class="avatar-option">
+              <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/abe7b1ecdb56421c8a8e32405bef379f~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=20260509185757CE7F7F99CFD43709E61B&rrcfp=f06b921b&x-expires=1780916303&x-signature=WaM0Pj9Tq7D17YTXMwLlnDrUusU%3D" alt="儿子" class="w-16 h-16 object-cover rounded-full cursor-pointer border-4 border-transparent" style="object-position: 25% 50%" data-avatar="son">
+            </div>
+            <div class="avatar-option">
+              <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/abe7b1ecdb56421c8a8e32405bef379f~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=20260509185757CE7F7F99CFD43709E61B&rrcfp=f06b921b&x-expires=1780916303&x-signature=WaM0Pj9Tq7D17YTXMwLlnDrUusU%3D" alt="女儿" class="w-16 h-16 object-cover rounded-full cursor-pointer border-4 border-transparent" style="object-position: 50% 50%" data-avatar="daughter">
+            </div>
+          </div>
+        </div>
+        
+        <div>
+          <label for="memberRole" class="block text-gray-700 mb-2">角色</label>
+          <select id="memberRole" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+            <option value="parent">家长</option>
+            <option value="child">孩子</option>
+          </select>
+        </div>
+        
+        <div class="pt-4">
+          <button type="submit" class="btn-3d btn-3d-primary w-full py-3 rounded-lg font-bold">
+            添加成员
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 添加任务模态框 -->
+  <div id="addTaskModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4 animate-scale-in">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-xl font-bold text-dark">添加任务</h3>
+        <button class="closeModal text-gray-500 hover:text-gray-700">
+          <i class="fa fa-times text-xl"></i>
+        </button>
+      </div>
+      
+      <form id="addTaskForm" class="space-y-4">
+        <div>
+          <label for="taskName" class="block text-gray-700 mb-2">任务名称</label>
+          <input type="text" id="taskName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" placeholder="请输入任务名称" required>
+        </div>
+        
+        <div>
+          <label for="taskPoints" class="block text-gray-700 mb-2">积分奖励</label>
+          <input type="number" id="taskPoints" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary" placeholder="请输入积分" min="1" max="100" required>
+        </div>
+        
+        <div>
+          <label class="block text-gray-700 mb-2">选择图标</label>
+          <div class="grid grid-cols-4 gap-4">
+            <div class="task-icon-option selected">
+              <img src="https://p6-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/8066731c2972415b8b115128cf20cec3~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=20260509185757CE7F7F99CFD43709E61B&rrcfp=f06b921b&x-expires=1780916308&x-signature=PfDehfXoKSC13XjH5jd4fTYfvl4%3D" alt="打扫" class="w-12 h-12 object-cover rounded-full cursor-pointer border-4 border-primary" data-icon="cleaning">
+            </div>
+            <div class="task-icon-option">
+              <img src="https://p6-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/8066731c2972415b8b115128cf20cec3~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=20260509185757CE7F7F99CFD43709E61B&rrcfp=f06b921b&x-expires=1780916308&x-signature=PfDehfXoKSC13XjH5jd4fTYfvl4%3D" alt="做饭" class="w-12 h-12 object-cover rounded-full cursor-pointer border-4 border-transparent" style="object-position: 75% 50%" data-icon="cooking">
+            </div>
+            <div class="task-icon-option">
+              <img src="https://p6-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/8066731c2972415b8b115128cf20cec3~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=20260509185757CE7F7F99CFD43709E61B&rrcfp=f06b921b&x-expires=1780916308&x-signature=PfDehfXoKSC13XjH5jd4fTYfvl4%3D" alt="作业" class="w-12 h-12 object-cover rounded-full cursor-pointer border-4 border-transparent" style="object-position: 25% 50%" data-icon="homework">
+            </div>
+            <div class="task-icon-option">
+              <img src="https://p6-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/8066731c2972415b8b115128cf20cec3~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=20260509185757CE7F7F99CFD43709E61B&rrcfp=f06b921b&x-expires=1780916308&x-signature=PfDehfXoKSC13XjH5jd4fTYfvl4%3D" alt="园艺" class="w-12 h-12 object-cover rounded-full cursor-pointer border-4 border-transparent" style="object-position: 50% 50%" data-icon="gardening">
+            </div>
+          </div>
+        </div>
+        
+        <div>
+          <label for="taskAssignee" class="block text-gray-700 mb-2">分配给</label>
+          <select id="taskAssignee" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+            <!-- 成员选项将通过JavaScript动态生成 -->
+            <option value="">请先添加成员</option>
+          </select>
+        </div>
+        
+        <div>
+          <label for="taskDeadline" class="block text-gray-700 mb-2">截止日期</label>
+          <input type="date" id="taskDeadline" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+        </div>
+        
+        <div class="pt-4">
+          <button type="submit" class="btn-3d btn-3d-primary w-full py-3 rounded-lg font-bold">
+            添加任务
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- 任务详情模态框 -->
+  <div id="taskDetailModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden">
+    <div class="bg-white rounded-xl p-6 w-full max-w-md mx-4 animate-scale-in">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-xl font-bold text-dark">任务详情</h3>
+        <button class="closeModal text-gray-500 hover:text-gray-700">
+          <i class="fa fa-times text-xl"></i>
+        </button>
+      </div>
+      
+      <div id="taskDetailContent" class="space-y-4">
+        <!-- 任务详情将通过JavaScript动态生成 -->
+      </div>
+      
+      <div class="flex space-x-4 pt-6">
+        <button id="completeTaskBtn" class="btn-3d btn-3d-success flex-1 py-3 rounded-lg font-bold">
+          完成任务
+        </button>
+        <button id="deleteTaskBtn" class="btn-3d btn-3d-accent flex-1 py-3 rounded-lg font-bold">
+          删除任务
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 成功提示 -->
+  <div id="successToast" class="fixed top-20 right-4 bg-success text-white px-6 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 z-50 flex items-center">
+    <i class="fa fa-check-circle mr-2"></i>
+    <span id="successToastMessage">操作成功</span>
+  </div>
+
+  <!-- 失败提示 -->
+  <div id="errorToast" class="fixed top-20 right-4 bg-accent text-white px-6 py-3 rounded-lg shadow-lg transform translate-x-full transition-transform duration-300 z-50 flex items-center">
+    <i class="fa fa-times-circle mr-2"></i>
+    <span id="errorToastMessage">操作失败</span>
+  </div>
+
+  <script>
+    // 数据存储
+    let members = JSON.parse(localStorage.getItem('familyMembers')) || [];
+    let tasks = JSON.parse(localStorage.getItem('familyTasks')) || [];
+    
+    // 当前选中的任务ID
+    let currentTaskId = null;
+    
+    // 当前任务筛选状态
+    let currentTaskFilter = 'all';
+    
+    // 当前排序方式
+    let currentSortBy = 'points-desc';
+    
+    // 初始化页面
+    document.addEventListener('DOMContentLoaded', function() {
+      // 渲染统计数据
+      updateStatistics();
+      
+      // 渲染排行榜
+      renderLeaderboard();
+      
+      // 渲染任务列表
+      renderTasks();
+      
+      // 更新任务分配下拉框
+      updateTaskAssigneeOptions();
+      
+      // 添加成员按钮点击事件
+      document.getElementById('addMemberBtn').addEventListener('click', function() {
+        document.getElementById('addMemberModal').classList.remove('hidden');
+      });
+      
+      // 添加任务按钮点击事件
+      document.getElementById('addTaskBtn').addEventListener('click', function() {
+        if (members.length === 0) {
+          showToast('error', '请先添加家庭成员');
+          return;
+        }
+        document.getElementById('addTaskModal').classList.remove('hidden');
+      });
+      
+      // 关闭模态框按钮点击事件
+      document.querySelectorAll('.closeModal').forEach(function(button) {
+        button.addEventListener('click', function() {
+          document.querySelectorAll('.fixed.inset-0').forEach(function(modal) {
+            modal.classList.add('hidden');
+          });
+        });
+      });
+      
+      // 点击模态框背景关闭模态框
+      document.querySelectorAll('.fixed.inset-0').forEach(function(modal) {
+        modal.addEventListener('click', function(e) {
+          if (e.target === modal) {
+            modal.classList.add('hidden');
+          }
+        });
+      });
+      
+      // 头像选择事件
+      document.querySelectorAll('.avatar-option').forEach(function(option) {
+        option.addEventListener('click', function() {
+          document.querySelectorAll('.avatar-option').forEach(function(opt) {
+            opt.classList.remove('selected');
+            opt.querySelector('img').classList.remove('border-primary');
+            opt.querySelector('img').classList.add('border-transparent');
+          });
+          this.classList.add('selected');
+          this.querySelector('img').classList.remove('border-transparent');
+          this.querySelector('img').classList.add('border-primary');
+        });
+      });
+      
+      // 任务图标选择事件
+      document.querySelectorAll('.task-icon-option').forEach(function(option) {
+        option.addEventListener('click', function() {
+          document.querySelectorAll('.task-icon-option').forEach(function(opt) {
+            opt.classList.remove('selected');
+            opt.querySelector('img').classList.remove('border-primary');
+            opt.querySelector('img').classList.add('border-transparent');
+          });
+          this.classList.add('selected');
+          this.querySelector('img').classList.remove('border-transparent');
+          this.querySelector('img').classList.add('border-primary');
+        });
+      });
+      
+      // 添加成员表单提交事件
+      document.getElementById('addMemberForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const name = document.getElementById('memberName').value;
+        const role = document.getElementById('memberRole').value;
+        const selectedAvatar = document.querySelector('.avatar-option.selected img').dataset.avatar;
+        
+        // 创建新成员
+        const newMember = {
+          id: Date.now().toString(),
+          name: name,
+          role: role,
+          avatar: selectedAvatar,
+          points: 0,
+          completedTasks: 0,
+          badges: [],
+          createdAt: new Date().toISOString()
+        };
+        
+        // 添加到成员列表
+        members.push(newMember);
+        
+        // 保存到本地存储
+        localStorage.setItem('familyMembers', JSON.stringify(members));
+        
+        // 更新统计数据
+        updateStatistics();
+        
+        // 更新排行榜
+        renderLeaderboard();
+        
+        // 更新任务分配下拉框
+        updateTaskAssigneeOptions();
+        
+        // 重置表单
+        this.reset();
+        
+        // 关闭模态框
+        document.getElementById('addMemberModal').classList.add('hidden');
+        
+        // 显示成功提示
+        showToast('success', '成员添加成功');
+      });
+      
+      // 添加任务表单提交事件
+      document.getElementById('addTaskForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const name = document.getElementById('taskName').value;
+        const points = parseInt(document.getElementById('taskPoints').value);
+        const selectedIcon = document.querySelector('.task-icon-option.selected img').dataset.icon;
+        const assigneeId = document.getElementById('taskAssignee').value;
+        const deadline = document.getElementById('taskDeadline').value;
+        
+        if (!assigneeId) {
+          showToast('error', '请选择任务分配对象');
+          return;
+        }
+        
+        // 创建新任务
+        const newTask = {
+          id: Date.now().toString(),
+          name: name,
+          points: points,
+          icon: selectedIcon,
+          assigneeId: assigneeId,
+          deadline: deadline,
+          completed: false,
+          completedAt: null,
+          createdAt: new Date().toISOString()
+        };
+        
+        // 添加到任务列表
+        tasks.push(newTask);
+        
+        // 保存到本地存储
+        localStorage.setItem('familyTasks', JSON.stringify(tasks));
+        
+        // 更新统计数据
+        updateStatistics();
+        
+        // 更新任务列表
+        renderTasks();
+        
+        // 重置表单
+        this.reset();
+        
+        // 关闭模态框
+        document.getElementById('addTaskModal').classList.add('hidden');
+        
+        // 显示成功提示
+        showToast('success', '任务添加成功');
+      });
+      
+      // 任务筛选按钮点击事件
+      document.getElementById('filterAllTasks').addEventListener('click', function() {
+        setActiveFilterButton(this);
+        currentTaskFilter = 'all';
+        renderTasks();
+      });
+      
+      document.getElementById('filterPendingTasks').addEventListener('click', function() {
+        setActiveFilterButton(this);
+        currentTaskFilter = 'pending';
+        renderTasks();
+      });
+      
+      document.getElementById('filterCompletedTasks').addEventListener('click', function() {
+        setActiveFilterButton(this);
+        currentTaskFilter = 'completed';
+        renderTasks();
+      });
+      
+      // 排序下拉框变更事件
+      document.getElementById('sortSelect').addEventListener('change', function() {
+        currentSortBy = this.value;
+        renderLeaderboard();
+      });
+      
+      // 完成任务按钮点击事件
+      document.getElementById('completeTaskBtn').addEventListener('click', function() {
+        if (!currentTaskId) return;
+        
+        // 查找任务
+        const taskIndex = tasks.findIndex(task => task.id === currentTaskId);
+        if (taskIndex === -1) return;
+        
+        // 更新任务状态
+        tasks[taskIndex].completed = true;
+        tasks[taskIndex].completedAt = new Date().toISOString();
+        
+        // 更新成员积分
+        const assigneeId = tasks[taskIndex].assigneeId;
+        const memberIndex = members.findIndex(member => member.id === assigneeId);
+        if (memberIndex !== -1) {
+          members[memberIndex].points += tasks[taskIndex].points;
+          members[memberIndex].completedTasks += 1;
+          
+          // 检查是否获得新徽章
+          checkForNewBadges(members[memberIndex]);
+        }
+        
+        // 保存到本地存储
+        localStorage.setItem('familyTasks', JSON.stringify(tasks));
+        localStorage.setItem('familyMembers', JSON.stringify(members));
+        
+        // 更新统计数据
+        updateStatistics();
+        
+        // 更新排行榜
+        renderLeaderboard();
+        
+        // 更新任务列表
+        renderTasks();
+        
+        // 关闭模态框
+        document.getElementById('taskDetailModal').classList.add('hidden');
+        
+        // 显示成功提示
+        showToast('success', '任务完成！获得 ' + tasks[taskIndex].points + ' 积分');
+        
+        // 显示庆祝动画
+        celebrateTaskCompletion();
+      });
+      
+      // 删除任务按钮点击事件
+      document.getElementById('deleteTaskBtn').addEventListener('click', function() {
+        if (!currentTaskId) return;
+        
+        if (confirm('确定要删除这个任务吗？')) {
+          // 查找任务
+          const taskIndex = tasks.findIndex(task => task.id === currentTaskId);
+          if (taskIndex === -1) return;
+          
+          // 如果任务已完成，需要减去相应的积分
+          const task = tasks[taskIndex];
+          if (task.completed) {
+            const memberIndex = members.findIndex(member => member.id === task.assigneeId);
+            if (memberIndex !== -1) {
+              members[memberIndex].points = Math.max(0, members[memberIndex].points - task.points);
+              members[memberIndex].completedTasks = Math.max(0, members[memberIndex].completedTasks - 1);
+            }
+          }
+          
+          // 从任务列表中删除
+          tasks.splice(taskIndex, 1);
+          
+          // 保存到本地存储
+          localStorage.setItem('familyTasks', JSON.stringify(tasks));
+          localStorage.setItem('familyMembers', JSON.stringify(members));
+          
+          // 更新统计数据
+          updateStatistics();
+          
+          // 更新排行榜
+          renderLeaderboard();
+          
+          // 更新任务列表
+          renderTasks();
+          
+          // 关闭模态框
+          document.getElementById('taskDetailModal').classList.add('hidden');
+          
+          // 显示成功提示
+          showToast('success', '任务已删除');
+        }
+      });
+      
+      // 设置默认截止日期为明天
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      document.getElementById('taskDeadline').valueAsDate = tomorrow;
+      
+      // 如果没有成员和任务，添加一些示例数据
+      if (members.length === 0 && tasks.length === 0) {
+        addSampleData();
+      }
+    });
+    
+    // 更新统计数据
+    function updateStatistics() {
+      // 总成员数
+      const totalMembers = members.length;
+      document.getElementById('totalMembers').textContent = totalMembers;
+      document.getElementById('membersProgress').style.width = Math.min(100, totalMembers * 20) + '%';
+      
+      // 待完成任务
+      const pendingTasks = tasks.filter(task => !task.completed).length;
+      document.getElementById('pendingTasks').textContent = pendingTasks;
+      document.getElementById('tasksProgress').style.width = tasks.length > 0 ? Math.min(100, (pendingTasks / tasks.length) * 100) + '%' : '0%';
+      
+      // 本周完成任务
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+      const completedTasks = tasks.filter(task => task.completed && new Date(task.completedAt) >= oneWeekAgo).length;
+      document.getElementById('completedTasks').textContent = completedTasks;
+      document.getElementById('completedProgress').style.width = Math.min(100, completedTasks * 10) + '%';
+      
+      // 总积分
+      const totalPoints = members.reduce((sum, member) => sum + member.points, 0);
+      document.getElementById('totalPoints').textContent = totalPoints;
+      document.getElementById('pointsProgress').style.width = Math.min(100, totalPoints / 10) + '%';
+    }
+    
+    // 渲染排行榜
+    function renderLeaderboard() {
+      const leaderboardContainer = document.getElementById('leaderboard');
+      
+      if (members.length === 0) {
+        leaderboardContainer.innerHTML = `
+          <div class="text-center text-gray-500 py-8">
+            <i class="fa fa-users text-4xl mb-2 block opacity-30"></i>
+            <p>暂无成员数据</p>
+          </div>
+        `;
+        return;
+      }
+      
+      // 根据当前排序方式排序成员
+      let sortedMembers = [...members];
+      
+      switch (currentSortBy) {
+        case 'points-desc':
+          sortedMembers.sort((a, b) => b.points - a.points);
+          break;
+        case 'points-asc':
+          sortedMembers.sort((a, b) => a.points - b.points);
+          break;
+        case 'name-asc':
+          sortedMembers.sort((a, b) => a.name.localeCompare(b.name));
+          break;
+        case 'name-desc':
+          sortedMembers.sort((a, b) => b.name.localeCompare(a.name));
+          break;
+      }
+      
+      // 渲染排行榜
+      let leaderboardHTML = '';
+      
+      sortedMembers.forEach((member, index) => {
+        // 获取头像URL
+        const avatarUrl = getAvatarUrl(member.avatar);
+        
+        // 获取排名样式
+        let rankStyle = '';
+        let rankIcon = '';
+        
+        if (index === 0) {
+          rankStyle = 'bg-yellow-100 border-yellow-500';
+          rankIcon = '<i class="fa fa-trophy text-yellow-500 mr-2"></i>';
+        } else if (index === 1) {
+          rankStyle = 'bg-gray-100 border-gray-400';
+          rankIcon = '<i class="fa fa-trophy text-gray-400 mr-2"></i>';
+        } else if (index === 2) {
+          rankStyle = 'bg-orange-100 border-orange-400';
+          rankIcon = '<i class="fa fa-trophy text-orange-400 mr-2"></i>';
+        }
+        
+        leaderboardHTML += `
+          <div class="flex items-center justify-between p-4 rounded-xl ${rankStyle} border-2 animate-fade-in" style="animation-delay: ${index * 0.1}s">
+            <div class="flex items-center">
+              <div class="avatar-3d w-12 h-12 mr-4">
+                <img src="${avatarUrl}" alt="${member.name}" class="w-full h-full object-cover">
+              </div>
+              <div>
+                <h4 class="font-bold text-dark">${rankIcon}${member.name}</h4>
+                <p class="text-sm text-gray-500">已完成 ${member.completedTasks} 个任务</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="text-2xl font-bold text-primary">${member.points} <span class="text-sm">积分</span></div>
+              ${member.badges.length > 0 ? `<div class="flex justify-end mt-1">${getBadgesHTML(member.badges)}</div>` : ''}
+            </div>
+          </div>
+        `;
+      });
+      
+      leaderboardContainer.innerHTML = leaderboardHTML;
+    }
+    
+    // 渲染任务列表
+    function renderTasks() {
+      const tasksContainer = document.getElementById('tasksContainer');
+      
+      // 根据当前筛选状态过滤任务
+      let filteredTasks = tasks;
+      
+      if (currentTaskFilter === 'pending') {
+        filteredTasks = tasks.filter(task => !task.completed);
+      } else if (currentTaskFilter === 'completed') {
+        filteredTasks = tasks.filter(task => task.completed);
+      }
+      
+      if (filteredTasks.length === 0) {
+        tasksContainer.innerHTML = `
+          <div class="text-center text-gray-500 py-8 col-span-full">
+            <i class="fa fa-tasks text-4xl mb-2 block opacity-30"></i>
+            <p>暂无任务数据</p>
+          </div>
+        `;
+        return;
+      }
+      
+      // 渲染任务卡片
+      let tasksHTML = '';
+      
+      filteredTasks.forEach((task, index) => {
+        // 获取任务图标URL
+        const iconUrl = getTaskIconUrl(task.icon);
+        
+        // 获取任务分配对象
+        const assignee = members.find(member => member.id === task.assigneeId);
+        const assigneeName = assignee ? assignee.name : '未知成员';
+        const assigneeAvatar = assignee ? getAvatarUrl(assignee.avatar) : '';
+        
+        // 计算截止日期状态
+        let deadlineStatus = '';
+        let deadlineText = '';
+        
+        if (task.deadline) {
+          const deadline = new Date(task.deadline);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          
+          if (task.completed) {
+            deadlineStatus = 'text-gray-500';
+            deadlineText = '已完成';
+          } else if (deadline < today) {
+            deadlineStatus = 'text-accent';
+            deadlineText = '已过期';
+          } else if (deadline.getTime() === today.getTime()) {
+            deadlineStatus = 'text-warning';
+            deadlineText = '今天截止';
+          } else {
+            deadlineStatus = 'text-success';
+            deadlineText = `${Math.ceil((deadline - today) / (1000 * 60 * 60 * 24))} 天后截止`;
+          }
+        }
+        
+        // 任务卡片样式
+        let cardStyle = task.completed ? 'opacity-70 bg-gray-50' : '';
+        
+        tasksHTML += `
+          <div class="card-3d p-4 cursor-pointer ${cardStyle} animate-fade-in" style="animation-delay: ${index * 0.1}s" onclick="showTaskDetail('${task.id}')">
+            <div class="flex justify-between items-start">
+              <div class="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mr-4">
+                <img src="${iconUrl}" alt="${task.name}" class="w-8 h-8 object-contain">
+              </div>
+              <div class="flex-1">
+                <h4 class="font-bold text-dark">${task.name}</h4>
+                <div class="flex items-center mt-1">
+                  <div class="w-6 h-6 rounded-full overflow-hidden mr-2">
+                    <img src="${assigneeAvatar}" alt="${assigneeName}" class="w-full h-full object-cover">
+                  </div>
+                  <span class="text-sm text-gray-600">${assigneeName}</span>
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="text-xl font-bold text-primary">${task.points} <span class="text-xs">积分</span></div>
+                ${task.deadline ? `<div class="text-xs ${deadlineStatus} mt-1">${deadlineText}</div>` : ''}
+              </div>
+            </div>
+            ${task.completed ? `
+              <div class="mt-3 flex items-center justify-between bg-success/10 p-2 rounded-lg">
+                <div class="flex items-center">
+                  <i class="fa fa-check-circle text-success mr-2"></i>
+                  <span class="text-sm text-success">已完成</span>
+                </div>
+                <span class="text-xs text-gray-500">${formatDate(new Date(task.completedAt))}</span>
+              </div>
+            ` : ''}
+          </div>
+        `;
+      });
+      
+      tasksContainer.innerHTML = tasksHTML;
+    }
+    
+    // 更新任务分配下拉框
+    function updateTaskAssigneeOptions() {
+      const assigneeSelect = document.getElementById('taskAssignee');
+      
+      if (members.length === 0) {
+        assigneeSelect.innerHTML = '<option value="">请先添加成员</option>';
+        return;
+      }
+      
+      let optionsHTML = '';
+      
+      members.forEach(member => {
+        optionsHTML += `<option value="${member.id}">${member.name} (${member.role === 'parent' ? '家长' : '孩子'})</option>`;
+      });
+      
+      assigneeSelect.innerHTML = optionsHTML;
+    }
+    
+    // 显示任务详情
+    function showTaskDetail(taskId) {
+      const task = tasks.find(task => task.id === taskId);
+      
+      if (!task) return;
+      
+      currentTaskId = taskId;
+      
+      // 获取任务图标URL
+      const iconUrl = getTaskIconUrl(task.icon);
+      
+      // 获取任务分配对象
+      const assignee = members.find(member => member.id === task.assigneeId);
+      const assigneeName = assignee ? assignee.name : '未知成员';
+      const assigneeAvatar = assignee ? getAvatarUrl(assignee.avatar) : '';
+      
+      // 计算截止日期状态
+      let deadlineStatus = '';
+      let deadlineText = '';
+      
+      if (task.deadline) {
+        const deadline = new Date(task.deadline);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        if (task.completed) {
+          deadlineStatus = 'text-gray-500';
+          deadlineText = '已完成';
+        } else if (deadline < today) {
+          deadlineStatus = 'text-accent';
+          deadlineText = '已过期';
+        } else if (deadline.getTime() === today.getTime()) {
+          deadlineStatus = 'text-warning';
+          deadlineText = '今天截止';
+        } else {
+          deadlineStatus = 'text-success';
+          deadlineText = `${Math.ceil((deadline - today) / (1000 * 60 * 60 * 24))} 天后截止`;
+        }
+      }
+      
+      // 渲染任务详情
+      const detailContent = document.getElementById('taskDetailContent');
+      
+      detailContent.innerHTML = `
+        <div class="flex items-center justify-between">
+          <div class="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
+            <img src="${iconUrl}" alt="${task.name}" class="w-10 h-10 object-contain">
+          </div>
+          <div class="text-right">
+            <div class="text-2xl font-bold text-primary">${task.points} <span class="text-sm">积分</span></div>
+            ${task.deadline ? `<div class="${deadlineStatus} mt-1">${deadlineText}</div>` : ''}
+          </div>
+        </div>
+        
+        <div class="mt-4">
+          <h3 class="text-xl font-bold text-dark">${task.name}</h3>
+          <p class="text-gray-500 mt-1">创建于 ${formatDate(new Date(task.createdAt))}</p>
+        </div>
+        
+        <div class="mt-4 grid grid-cols-2 gap-4">
+          <div class="bg-gray-50 p-3 rounded-lg">
+            <p class="text-sm text-gray-500">分配给</p>
+            <div class="flex items-center mt-2">
+              <div class="w-8 h-8 rounded-full overflow-hidden mr-2">
+                <img src="${assigneeAvatar}" alt="${assigneeName}" class="w-full h-full object-cover">
+              </div>
+              <span class="font-medium">${assigneeName}</span>
+            </div>
+          </div>
+          
+          <div class="bg-gray-50 p-3 rounded-lg">
+            <p class="text-sm text-gray-500">截止日期</p>
+            <p class="font-medium mt-2">${task.deadline ? formatDate(new Date(task.deadline)) : '无'}</p>
+          </div>
+        </div>
+        
+        ${task.completed ? `
+          <div class="mt-4 bg-success/10 p-4 rounded-lg flex items-center justify-between">
+            <div class="flex items-center">
+              <i class="fa fa-check-circle text-success text-xl mr-3"></i>
+              <div>
+                <p class="font-medium text-success">任务已完成</p>
+                <p class="text-sm text-gray-500">完成时间：${formatDate(new Date(task.completedAt))}</p>
+              </div>
+            </div>
+            <div class="btn-3d btn-3d-success px-4 py-2 rounded-lg">
+              +${task.points} 积分
+            </div>
+          </div>
+        ` : ''}
+      `;
+      
+      // 更新按钮状态
+      const completeTaskBtn = document.getElementById('completeTaskBtn');
+      const deleteTaskBtn = document.getElementById('deleteTaskBtn');
+      
+      if (task.completed) {
+        completeTaskBtn.disabled = true;
+        completeTaskBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        completeTaskBtn.textContent = '已完成';
+      } else {
+        completeTaskBtn.disabled = false;
+        completeTaskBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        completeTaskBtn.textContent = '完成任务';
+      }
+      
+      // 显示模态框
+      document.getElementById('taskDetailModal').classList.remove('hidden');
+    }
+    
+    // 显示提示信息
+    function showToast(type, message) {
+      const toast = document.getElementById(type === 'success' ? 'successToast' : 'errorToast');
+      const messageElement = document.getElementById(type === 'success' ? 'successToastMessage' : 'errorToastMessage');
+      
+      messageElement.textContent = message;
+      
+      toast.classList.remove('translate-x-full');
+      
+      setTimeout(() => {
+        toast.classList.add('translate-x-full');
+      }, 3000);
+    }
+    
+    // 设置活动的筛选按钮
+    function setActiveFilterButton(button) {
+      document.querySelectorAll('#filterAllTasks, #filterPendingTasks, #filterCompletedTasks').forEach(btn => {
+        btn.classList.remove('active', 'bg-primary', 'text-white');
+        btn.classList.add('bg-gray-100', 'text-dark');
+      });
+      
+      button.classList.add('active', 'bg-primary', 'text-white');
+      button.classList.remove('bg-gray-100', 'text-dark');
+    }
+    
+    // 获取头像URL
+    function getAvatarUrl(avatarType) {
+      const baseUrl = 'https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/abe7b1ecdb56421c8a8e32405bef379f~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=20260509185757CE7F7F99CFD43709E61B&rrcfp=f06b921b&x-expires=1780916303&x-signature=WaM0Pj9Tq7D17YTXMwLlnDrUusU%3D';
+      
+      switch (avatarType) {
+        case 'father':
+          return baseUrl;
+        case 'mother':
+          return baseUrl;
+        case 'son':
+          return baseUrl;
+        case 'daughter':
+          return baseUrl;
+        default:
+          return baseUrl;
+      }
+    }
+    
+    // 获取任务图标URL
+    function getTaskIconUrl(iconType) {
+      const baseUrl = 'https://p6-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/8066731c2972415b8b115128cf20cec3~tplv-a9rns2rl98-image.image?lk3s=8e244e95&rcl=20260509185757CE7F7F99CFD43709E61B&rrcfp=f06b921b&x-expires=1780916308&x-signature=PfDehfXoKSC13XjH5jd4fTYfvl4%3D';
+      
+      switch (iconType) {
+        case 'cleaning':
+          return baseUrl;
+        case 'cooking':
+          return baseUrl;
+        case 'homework':
+          return baseUrl;
+        case 'gardening':
+          return baseUrl;
+        default:
+          return baseUrl;
+      }
+    }
+    
+    // 格式化日期
+    function formatDate(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      
+      return `${year}-${month}-${day}`;
+    }
+    
+    // 检查是否获得新徽章
+    function checkForNewBadges(member) {
+      const newBadges = [];
+      
+      // 新星徽章：完成第一个任务
+      if (member.completedTasks === 1 && !member.badges.includes('new_star')) {
+        newBadges.push('new_star');
+      }
+      
+      // 冠军徽章：一周内完成10个任务
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+      const recentTasks = tasks.filter(task => 
+        task.assigneeId === member.id && 
+        task.completed && 
+        new Date(task.completedAt) >= oneWeekAgo
+      );
+      
+      if (recentTasks.length >= 10 && !member.badges.includes('champion')) {
+        newBadges.push('champion');
+      }
+      
+      // 奖牌徽章：获得100积分
+      if (member.points >= 100 && !member.badges.includes('medal')) {
+        newBadges.push('medal');
+      }
+      
+      // 皇冠徽章：连续7天完成任务
+      const completedDates = tasks
+        .filter(task => task.assigneeId === member.id && task.completed)
+        .map(task => {
+          const date = new Date(task.completedAt);
+          date.setHours(0, 0, 0, 0);
+          return date.getTime();
+        })
+        .filter((date, index, self) => self.indexOf(date) === index)
+        .sort((a, b) => b - a);
+      
+      let consecutiveDays = 0;
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      for (let i = 0; i < completedDates.length; i++) {
+        const expectedDate = new Date(today);
+        expectedDate.setDate(today.getDate() - i);
+        
+        if (completedDates[i] === expectedDate.getTime()) {
+          consecutiveDays++;
+        } else {
+          break;
+        }
+      }
+      
+      if (consecutiveDays >= 7 && !member.badges.includes('crown')) {
+        newBadges.push('crown');
+      }
+      
+      // 如果获得新徽章，添加到成员的徽章列表
+      if (newBadges.length > 0) {
+        member.badges = [...member.badges, ...newBadges];
+        
+        // 显示获得徽章的提示
+        newBadges.forEach(badge => {
+          let badgeName = '';
+          
+          switch (badge) {
+            case 'new_star':
+              badgeName = '新星';
+              break;
+            case 'champion':
+              badgeName = '冠军';
+              break;
+            case 'medal':
+              badgeName = '奖牌';
+              break;
+            case 'crown':
+              badgeName = '皇冠';
+              break;
+          }
+          
+          showToast('success', `${member.name} 获得了 ${badgeName} 徽章！`);
+        });
+      }
+    }
+    
+    // 获取徽章HTML
+    function getBadgesHTML(badges) {
+      let badgesHTML = '';
+      
+      badges.forEach(badge => {
+        let badgeIcon = '';
+        let badgeColor = '';
+        
+        switch (badge) {
+          case 'new_star':
+            badgeIcon = 'star';
+            badgeColor = 'text-blue-500';
+            break;
+          case 'champion':
+            badgeIcon = 'trophy';
+            badgeColor = 'text-yellow-500';
+            break;
+          case 'medal':
+            badgeIcon = 'medal';
+            badgeColor = 'text-red-500';
+            break;
+          case 'crown':
+            badgeIcon = 'crown';
+            badgeColor = 'text-purple-500';
+            break;
+        }
+        
+        badgesHTML += `<i class="fa fa-${badgeIcon} ${badgeColor} mx-1"></i>`;
+      });
+      
+      return badgesHTML;
+    }
+    
+    // 任务完成庆祝动画
+    function celebrateTaskCompletion() {
+      // 创建庆祝动画容器
+      const celebrationContainer = document.createElement('div');
+      celebrationContainer.className = 'fixed inset-0 pointer-events-none z-50';
+      document.body.appendChild(celebrationContainer);
+      
+      // 创建五彩纸屑
+      for (let i = 0; i < 100; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        
+        // 随机颜色
+        const colors = ['bg-red-500', 'bg-yellow-500', 'bg-green-500', 'bg-blue-500', 'bg-purple-500', 'bg-pink-500', 'bg-orange-500'];
+        confetti.classList.add(colors[Math.floor(Math.random() * colors.length)]);
+        
+        // 随机位置
+        confetti.style.left = `${Math.random() * 100}%`;
+        confetti.style.top = `${Math.random() * 100}%`;
+        
+        // 随机动画
+        confetti.style.animation = `falling ${2 + Math.random() * 3}s linear forwards`;
+        
+        celebrationContainer.appendChild(confetti);
+      }
+      
+      // 添加CSS动画
+      const style = document.createElement('style');
+      style.textContent = `
+        @keyframes falling {
+          0% {
+            transform: translateY(-100px) rotate(0deg);
+            opacity: 1;
+          }
+          100% {
+            transform: translateY(100vh) rotate(360deg);
+            opacity: 0;
+          }
+        }
+      `;
+      document.head.appendChild(style);
+      
+      // 移除庆祝动画容器
+      setTimeout(() => {
+        document.body.removeChild(celebrationContainer);
+        document.head.removeChild(style);
+      }, 5000);
+    }
+    
+    // 添加示例数据
+    function addSampleData() {
+      // 添加示例成员
+      members = [
+        {
+          id: '1',
+          name: '爸爸',
+          role: 'parent',
+          avatar: 'father',
+          points: 25,
+          completedTasks: 5,
+          badges: [],
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: '2',
+          name: '妈妈',
+          role: 'parent',
+          avatar: 'mother',
+          points: 30,
+          completedTasks: 6,
+          badges: [],
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: '3',
+          name: '小明',
+          role: 'child',
+          avatar: 'son',
+          points: 45,
+          completedTasks: 9,
+          badges: [],
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: '4',
+          name: '小红',
+          role: 'child',
+          avatar: 'daughter',
+          points: 35,
+          completedTasks: 7,
+          badges: [],
+          createdAt: new Date().toISOString()
+        }
+      ];
+      
+      // 添加示例任务
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      
+      tasks = [
+        {
+          id: '1',
+          name: '打扫客厅',
+          points: 10,
+          icon: 'cleaning',
+          assigneeId: '1',
+          deadline: tomorrow.toISOString().split('T')[0],
+          completed: false,
+          completedAt: null,
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: '2',
+          name: '准备晚餐',
+          points: 15,
+          icon: 'cooking',
+          assigneeId: '2',
+          deadline: tomorrow.toISOString().split('T')[0],
+          completed: false,
+          completedAt: null,
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: '3',
+          name: '完成数学作业',
+          points: 20,
+          icon: 'homework',
+          assigneeId: '3',
+          deadline: tomorrow.toISOString().split('T')[0],
+          completed: false,
+          completedAt: null,
+          createdAt: new Date().toISOString()
+        },
+        {
+          id: '4',
+          name: '浇花',
+          points: 5,
+          icon: 'gardening',
+          assigneeId: '4',
+          deadline: yesterday.toISOString().split('T')[0],
+          completed: true,
+          completedAt: yesterday.toISOString(),
+          createdAt: new Date().toISOString()
+        }
+      ];
+      
+      // 保存到本地存储
+      localStorage.setItem('familyMembers', JSON.stringify(members));
+      localStorage.setItem('familyTasks', JSON.stringify(tasks));
+      
+      // 更新统计数据
+      updateStatistics();
+      
+      // 更新排行榜
+      renderLeaderboard();
+      
+      // 更新任务列表
+      renderTasks();
+      
+      // 更新任务分配下拉框
+      updateTaskAssigneeOptions();
+    }
+  </script>
+</body>
+</html>
